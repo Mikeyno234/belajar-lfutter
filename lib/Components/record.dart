@@ -17,7 +17,7 @@ class Keuangan {
 }
 
 class KeuanganProvider with ChangeNotifier {
-  final List<Keuangan> _transactions = [];
+  final _transactions = <Keuangan>[];
 
   List<Keuangan> get transactions => _transactions;
 
@@ -25,7 +25,11 @@ class KeuanganProvider with ChangeNotifier {
 
   void addTransaction(Keuangan transaction) {
     _transactions.add(transaction);
+    notifyListeners(); // Notify listeners about the data change
+  }
 
-    notifyListeners();
+  Stream<List<Keuangan>> getTransactions() {
+    return Stream.value(
+        _transactions); // Simulasi data statis, ganti dengan data dari database atau API
   }
 }
