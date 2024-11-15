@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:aplikasi_sederhana_to_do_list/Components/record.dart'; // Import Keuangan and KeuanganProvider
+import 'package:aplikasi_sederhana_to_do_list/Components/record.dart'; // Make sure the path is correct for your project
 
 class Homepage extends StatelessWidget {
+  const Homepage({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -17,29 +19,32 @@ class Homepage extends StatelessWidget {
           children: [
             const SizedBox(width: 16.0),
             Expanded(
-              child: StreamProvider<List<Keuangan>>(
-                  // Use StreamProvider for data updates
-                  create: (context) =>
-                      Provider.of<KeuanganProvider>(context, listen: false)
-                          .getTransactions(),
-                  initialData: const [],
-                  builder: (context, snapshot) {
-                    final transactions = snapshot?.data?.toList() ??
-                        []; // Handle potential null data
+              child: Consumer<KeuanganProvider>(
+                builder: (context, keuanganProvider, _) {
+                  final transactions = keuanganProvider.transactions;
 
-                    if (transactions.isEmpty) {
-                      return const Center(
-                          child: Text('Belum ada data transaksi'));
-                    } else {
-                      return ListView.builder(
-                        itemCount: transactions.length,
-                        itemBuilder: (context, index) {
-                          final transaction = transactions[index];
-                          final color = transaction.type == 'Pengeluaran'
-                              ? Colors.red
-                              : Colors.green;
+                  if (transactions.isEmpty) {
+                    return const Center(
+                      child: Text('Belum ada data transaksi'),
+                    );
+                  } else {
+                    return ListView.builder(
+                      itemCount: transactions.length,
+                      itemBuilder: (context, index) {
+                        final transaction = transactions[index];
+                        final color = transaction.type == 'Pengeluaran'
+                            ? Colors.red
+                            : Colors.green;
 
-                          return Card(
+                        return InkWell(
+                          onTap: () {
+                            Navigator.pushNamed(
+                              context,
+                              '/EditForm',
+                              arguments: transaction,
+                            );
+                          },
+                          child: Card(
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Row(
@@ -48,17 +53,18 @@ class Homepage extends StatelessWidget {
                                 children: [
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment
-                                          .start, // Align title to left
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(transaction.judul),
                                         const SizedBox(height: 8.0),
                                         Text(
                                           DateFormat('y MMMM d')
                                               .format(transaction.tanggal),
-                                          style: TextStyle(
-                                              fontSize: 12.0,
-                                              color: Colors.grey),
+                                          style: const TextStyle(
+                                            fontSize: 12.0,
+                                            color: Colors.grey,
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -73,11 +79,13 @@ class Homepage extends StatelessWidget {
                                 ],
                               ),
                             ),
-                          );
-                        },
-                      );
-                    }
-                  }),
+                          ),
+                        );
+                      },
+                    );
+                  }
+                },
+              ),
             ),
           ],
         ),
@@ -105,25 +113,14 @@ class Homepage extends StatelessWidget {
             ),
             BottomNavigationBarItem(
               icon: IconButton(
-                onPressed: () {},
+                onPressed: () {}, // Implement action for Settings
                 icon: const Icon(Icons.settings),
               ),
               label: 'Settings',
-            ),
-            BottomNavigationBarItem(
-              icon: IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/EditForm'),
-                icon: const Icon(Icons.info),
-              ),
-              label: 'Info',
             ),
           ],
         ),
       ),
     );
   }
-}
-
-extension on Widget? {
-  get data => null;
 }

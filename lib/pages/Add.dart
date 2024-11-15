@@ -1,11 +1,12 @@
-import 'package:aplikasi_sederhana_to_do_list/Components/record.dart'
-    show Keuangan, KeuanganProvider;
-import 'package:flutter_datetime_picker_plus/flutter_datetime_picker_plus.dart';
+import 'package:aplikasi_sederhana_to_do_list/Components/record.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:uuid/uuid.dart';
 
 class Add extends StatefulWidget {
+  const Add({super.key});
+
   @override
   _AddState createState() => _AddState();
 }
@@ -33,7 +34,13 @@ class _AddState extends State<Add> {
             children: [
               TextFormField(
                 controller: _judulController,
-                decoration: const InputDecoration(labelText: 'Judul'),
+                decoration: InputDecoration(
+                  labelText: 'Judul',
+                  hintText: 'Masukkan judul transaksi',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return 'Judul tidak boleh kosong';
@@ -41,67 +48,83 @@ class _AddState extends State<Add> {
                   return null;
                 },
               ),
-              // Date display with validation
+              const SizedBox(height: 16.0),
               Row(
                 children: [
-                  Text(_selectedDate != null
-                      ? '${DateFormat('y MMMM d').format(_selectedDate!)}'
-                      : 'Belum ada tanggal dipilih'),
-                  const Spacer(),
-                  ElevatedButton(
-                    onPressed: () {
-                      DatePicker.showDatePicker(
-                        context,
-                        showTitleActions: true,
-                        minTime: DateTime(2000, 1, 1),
-                        maxTime: DateTime(2100, 12, 31),
-                        onConfirm: (date) {
-                          setState(() {
-                            _selectedDate = date;
-                          });
-                        },
-                        currentTime: DateTime.now(),
+                  const Text('Tanggal: ', style: TextStyle(fontSize: 16.0)),
+                  TextButton(
+                    onPressed: () async {
+                      final DateTime? picked = await showDatePicker(
+                        context: context,
+                        initialDate: DateTime.now(),
+                        firstDate: DateTime(2000),
+                        lastDate: DateTime(2101),
                       );
+                      if (picked != null) {
+                        setState(() {
+                          _selectedDate = picked;
+                        });
+                      }
                     },
-                    child: const Text('Pilih Tanggal'),
+                    child: Text(
+                      _selectedDate != null
+                          ? '${DateFormat('y MMMM d').format(_selectedDate!)}'
+                          : 'Pilih Tanggal',
+                      style: const TextStyle(fontSize: 16.0),
+                    ),
                   ),
                 ],
               ),
+              const SizedBox(height: 16.0),
               TextFormField(
                 controller: _hargaController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Harga'),
+                decoration: InputDecoration(
+                  labelText: 'Harga',
+                  hintText: 'Masukkan jumlah harga',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return 'Harga tidak boleh kosong';
+                  } else if (int.tryParse(value) == null) {
+                    return 'Harga harus berupa angka';
                   }
                   return null;
                 },
               ),
-              DropdownButtonFormField(
+              const SizedBox(height: 16.0),
+              DropdownButtonFormField<String>(
                 value: _selectedType,
-                items: ['Pengeluaran', 'Pemasukan']
-                    .map((item) => DropdownMenuItem(
-                          value: item,
-                          child: Text(item),
-                        ))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedType = value!;
-                  });
-                },
-                validator: (value) {
-                  if (value == null) {
-                    return 'Pilih jenis Pengeluaran/Pemasukan';
-                  }
-                  return null;
-                },
+                decoration: InputDecoration(
+                  labelText: 'Tipe Transaksi',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8.0),
+                  ),
+                ),
+                items: const [
+                  DropdownMenuItem<String>(
+                    value: 'Pengeluaran',
+                    child: Text('Pengeluaran'),
+                  ),
+                  DropdownMenuItem<String>(
+                    value: 'Pemasukan',
+                    child: Text('Pemasukan'),
+                  ),
+                ],
+                onChanged: (value) => setState(() => _selectedType = value!),
               ),
+              const SizedBox(height: 24.0),
               ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate() &&
                       _selectedDate != null) {
+                    // Generate a unique ID using uuid
+                    var uuid = const Uuid();
+                    String uniqueId = uuid.v4(); // Generate a unique ID
+
                     Provider.of<KeuanganProvider>(context, listen: false)
                         .addTransaction(
                       Keuangan(
@@ -109,6 +132,7 @@ class _AddState extends State<Add> {
                         tanggal: _selectedDate!,
                         harga: int.parse(_hargaController.text),
                         type: _selectedType,
+                        id: uniqueId, // Pass the generated unique ID
                       ),
                     );
                     ScaffoldMessenger.of(context).showSnackBar(
@@ -117,7 +141,6 @@ class _AddState extends State<Add> {
                     );
                     Navigator.pop(context);
                   } else {
-                    // Show a snackbar if date is not selected
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Tanggal belum dipilih!'),
@@ -125,7 +148,7 @@ class _AddState extends State<Add> {
                     );
                   }
                 },
-                child: Text('Submit'),
+                child: const Text('Submit'),
               ),
             ],
           ),

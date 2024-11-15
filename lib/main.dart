@@ -1,20 +1,25 @@
-import 'package:provider/provider.dart';
-import 'pages/homepage.dart';
-import 'pages/editform.dart';
 import 'package:flutter/material.dart';
-import './pages/Add.dart';
-import './Components/record.dart';
+import 'package:provider/provider.dart';
+import 'package:aplikasi_sederhana_to_do_list/Components/record.dart';
+import 'package:aplikasi_sederhana_to_do_list/pages/homepage.dart';
+import 'package:aplikasi_sederhana_to_do_list/pages/add.dart';
+import 'package:aplikasi_sederhana_to_do_list/pages/editform.dart';
 
 void main() {
-  runApp(ChangeNotifierProvider(
-      create: (context) => KeuanganProvider(),
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => KeuanganProvider(), // Ensure correct provider type
       child: MaterialApp(
-        home: Homepage(),
-        title: "Navbar",
-        routes: <String, WidgetBuilder>{
-          '/Home': (BuildContext Context) => Homepage(),
-          '/EditForm': (BuildContext Context) => EditForm(),
-          '/Add': (BuildContext Context) => Add(),
+        home: const Homepage(),
+        routes: {
+          '/Home': (context) => const Homepage(),
+          '/Add': (context) => const Add(),
+          '/EditForm': (context) => EditForm(
+                transaction:
+                    ModalRoute.of(context)?.settings.arguments as Keuangan,
+              ),
         },
-      )));
+      ),
+    ),
+  );
 }
